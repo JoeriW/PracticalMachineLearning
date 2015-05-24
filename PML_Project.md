@@ -30,41 +30,7 @@ load required packages:
 
 ```r
 library(caret)
-```
-
-```
-## Warning: package 'caret' was built under R version 3.1.3
-```
-
-```
-## Loading required package: lattice
-## Loading required package: ggplot2
-## Need help? Try the ggplot2 mailing list: http://groups.google.com/group/ggplot2.
-```
-
-```r
 library(gbm)
-```
-
-```
-## Warning: package 'gbm' was built under R version 3.1.3
-```
-
-```
-## Loading required package: survival
-## Loading required package: splines
-## 
-## Attaching package: 'survival'
-## 
-## The following object is masked from 'package:caret':
-## 
-##     cluster
-## 
-## Loading required package: parallel
-## Loaded gbm 2.1.1
-```
-
-```r
 library(knitr)
 ```
 
@@ -394,10 +360,6 @@ modFitBoosting <- train(classe~.
                         ,verbose=FALSE
                         ,trControl = trainControl(method="cv",number=5))
 ```
-
-```
-## Loading required package: plyr
-```
 #### 6.1.2 in-sample error
 
 Test the accuracy of the training set in order to obtain an in-sample error rate.
@@ -446,7 +408,7 @@ The accurancy of the model on our training set is **0.9744**, meaning an in-samp
 
 #### 6.1.3 out-of-sample error
 
-As the model was fitted it on the training set it is logical the in-sample error rate will be lower than the out-of-sample error rate. This is due to what is called overfitting. Consequently we expect the out-of-sample error rate to be somewhat higher than 2.45%
+As the model was fitted it on the training set it is logical that the in-sample error rate will be lower than the out-of-sample error rate. This is due to what is called overfitting. Consequently we expect the out-of-sample error rate to be somewhat higher than 2.56%
 
 
 ```r
@@ -505,7 +467,7 @@ answersBoosting
 ## Levels: A B C D E
 ```
 
-Text files are created in order to submitt to the Coursera website.
+Text files are created in order to submit to the Coursera website.
 
 
 ```r

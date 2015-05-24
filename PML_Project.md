@@ -442,7 +442,7 @@ confusionMatrix(trainPredBoosting,trainSet$classe)
 ## Balanced Accuracy      0.9925   0.9760   0.9802   0.9812   0.9852
 ```
 
-The accurancy of the model on our training set is **0.9755**, meaning an in-sample error rate of **2.45%**.
+The accurancy of the model on our training set is **0.9744**, meaning an in-sample error rate of **2.56%**.
 
 #### 6.1.3 out-of-sample error
 
@@ -488,7 +488,7 @@ confusionMatrix(testPredBoosting,testSet$classe)
 ## Balanced Accuracy      0.9864   0.9584   0.9619   0.9760   0.9769
 ```
 
-Indeed, the accuracy of our test set is **0.9609**, meaning and out-of-sample error rate of **3.91%**.
+Indeed, the accuracy of our test set is **0.9572**, meaning and out-of-sample error rate of **4.28%**.
 
 ##7. Prediction
 

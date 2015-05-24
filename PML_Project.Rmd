@@ -1,0 +1,166 @@
+---
+title: 'Practical Machine Learning: Project'
+author: "JoeriW"
+date: "Saturday, May 23, 2015"
+output: html_document
+---
+
+##1. Introduction
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, our goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+
+The goal of this project is to create a machine learning algorithm that tries to predict the fashion in which participants to the experiment performed a barbell lift. The 5 possible fashions are:
+
+A. exactly according to specification
+
+B. throwing the elbows to the front 
+
+C. lifting the dumbell only halfway 
+
+D. lowering the dumbell only halfway 
+
+E. throwing the hips to the front 
+
+
+##2. Preparatory phase
+
+load required packages:
+
+```{r}
+library(caret)
+library(gbm)
+library(knitr)
+```
+
+Set the seed in order to allow reproducibility
+
+```{r}
+set.seed(666)
+```
+
+
+##3. Loading the data
+
+download the data and store in a training and testing variable:
+
+```{r}
+if(!file.exists("pml_training.csv")){
+        download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv","pml_training.csv")
+}
+if(!file.exists("pml_testing.csv")){
+        download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv","pml_testing.csv")
+}
+training <- read.csv("pml_training.csv")
+testing <- read.csv("pml_testing.csv")
+```
+
+##4. Pre-processing
+
+Look at the dimension of the training data set.
+
+```{r}
+dim(training)
+```
+
+When looking at the dimensions of the data set, we notice an extensive amount of variables. Variables that exhibit zero or near zero variance will not contribute to our model and therefore can be removed.
+
+```{r}
+nzvCols <- nearZeroVar(training)
+training <- training[,-nzvCols]
+testing <- testing[,-nzvCols]
+```
+
+Look at the structure of our training data set
+
+```{r}
+summary(training) 
+```
+
+Some variables seem to have NA values. Additionally, each variable that has NA values, has exactly 19216 of them, indicating that for these variables measurement are very incomplete and therefore should be removed for both training and test set.
+
+```{r}
+training <- training[,colSums(is.na(training)*1)==0]
+testing <- testing[,colSums(is.na(training)*1)==0]
+```
+
+The first 6 columns seems to be identifier and timestamp data and presumably don't have a lot of added value in our model and therefore will
+be removed as well.
+
+```{r}
+training <- training[,-c(1:6)]
+testing <- testing[,-c(1:6)]
+```
+
+##5. Data Partitioning
+
+In general accuracy on the training set is optimistic as the model will be somewhat overfitted to specific feautures of the data. A better estimate
+comes from an independent set. Therefore we split the training data into training data and test data. The test data will be used to estimate the
+out-of-sample error.
+
+```{r}
+split <- createDataPartition(training$classe,p=0.6,list=F)
+trainSet <- training[split,]
+testSet <- training[-split,]
+```
+
+##6. Model fitting
+
+A **boosting** algorithm will be implemented as this is (together with other algorithms like random forest) one of the more accurate models.
+
+### 6.1 Boosting
+
+In order to validate our model a k-fold cross validation procedure will be applied. Although there are no strict rules regarding the size of k, 10-fold is a commonly used. However, this will slow down the procedure too much. Therefore we set the number to 5.
+
+```{r}
+modFitBoosting <- train(classe~.
+                        ,method="gbm"
+                        ,data=trainSet
+                        ,verbose=FALSE
+                        ,trControl = trainControl(method="cv",number=5))
+```
+#### 6.1.2 in-sample error
+
+Test the accuracy of the training set in order to obtain an in-sample error rate.
+
+```{r}
+trainPredBoosting <- predict(modFitBoosting,trainSet)
+confusionMatrix(trainPredBoosting,trainSet$classe)
+```
+
+The accurancy of the model on our training set is **0.9755**, meaning an in-sample error rate of **2.45%**.
+
+#### 6.1.3 out-of-sample error
+
+As the model was fitted it on the training set it is logical the in-sample error rate will be lower than the out-of-sample error rate. This is due to what is called overfitting. Consequently we expect the out-of-sample error rate to be somewhat higher than 2.45%
+
+```{r}
+testPredBoosting <- predict(modFitBoosting,testSet)
+confusionMatrix(testPredBoosting,testSet$classe)
+```
+
+Indeed, the accuracy of our test set is **0.9609**, meaning and out-of-sample error rate of **3.91%**.
+
+##7. Prediction
+
+Our obtained learning algorithm is now applied to the 20 test cases. The outcome will be 20 predictions of the fashion (see introduction) in which participants performed barbell lifts
+
+```{r}
+answersBoosting <- predict(modFitBoosting,testing)
+answersBoosting
+```
+
+Text files are created in order to submitt to the Coursera website.
+
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(answersBoosting)
+```
+
+
